@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import * as React from 'react';
 
 type LanguageType = 'en' | 'hi';
 
@@ -8,34 +8,26 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-// Provide a default value matching the type
 const defaultContext: LanguageContextType = {
   language: 'en',
   setLanguage: () => {},
   t: (key: string) => key
 };
 
-export const LanguageContext = createContext<LanguageContextType>(defaultContext);
+export const LanguageContext = React.createContext<LanguageContextType>(defaultContext);
 
-interface LanguageProviderProps {
-  children: ReactNode;
-}
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguage] = React.useState<LanguageType>('en');
+  const [translations, setTranslations] = React.useState<Record<string, Record<string, string>>>({});
 
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<LanguageType>('en');
-  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
-
-  useEffect(() => {
-    // Load translations
+  React.useEffect(() => {
     const loadTranslations = async () => {
       const translationsModule = await import('../translations');
       setTranslations(translationsModule.default);
     };
-
     loadTranslations();
   }, []);
 
-  // Translate function
   const t = (key: string): string => {
     if (!translations[language]) return key;
     return translations[language][key] || translations['en'][key] || key;
@@ -49,8 +41,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 };
 
 export const useLanguage = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
+  const context = React.useContext(LanguageContext);
+  if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;

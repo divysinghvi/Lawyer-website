@@ -10,7 +10,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      jsxRuntime: 'classic' // Add this line
+      jsxImportSource: '@emotion/react',
+      // Removed unsupported 'babel' property
     }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
@@ -25,14 +26,24 @@ export default defineConfig(({ mode }) => ({
     minify: mode === 'production',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'radix-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix';
+            }
+            return 'vendor';
+          }
         }
       }
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom']
+    include: ['react', 'react-dom'],
+    esbuildOptions: {
+      target: 'es2020'
+    }
   }
 }));
