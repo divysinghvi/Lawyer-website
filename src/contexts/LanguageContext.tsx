@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type LanguageType = 'en' | 'hi';
@@ -9,7 +8,14 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+// Provide a default value matching the type
+const defaultContext: LanguageContextType = {
+  language: 'en',
+  setLanguage: () => {},
+  t: (key: string) => key
+};
+
+export const LanguageContext = createContext<LanguageContextType>(defaultContext);
 
 interface LanguageProviderProps {
   children: ReactNode;

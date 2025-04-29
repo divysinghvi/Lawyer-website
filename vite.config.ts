@@ -3,20 +3,21 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'classic' // Add this line
+    }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-    },
+    }
   },
   build: {
     outDir: 'dist',
@@ -24,19 +25,14 @@ export default defineConfig(({ mode }) => ({
     minify: mode === 'production',
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('@radix-ui')) {
-              return 'vendor-radix';
-            }
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor-react';
-            }
-            return 'vendor';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'radix-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip']
         }
-      },
-    },
+      }
+    }
   },
-  base: './', // 👈 this will help with the deployment paths
+  optimizeDeps: {
+    include: ['react', 'react-dom']
+  }
 }));
